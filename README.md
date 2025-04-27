@@ -1,5 +1,6 @@
 # TemplateSMD
 
+---
 A lightweight Node.js template engine for simple dynamic HTML rendering.
 ---
 
@@ -13,100 +14,136 @@ feel free to open an issue or share your thoughts if you have ideas to improve i
 Thank you for checking it out!
 
 ---
+
 ## Features
 
-- Variable interpolation (`{{ variable }}`)
+- Placeholder binding (`{{ placeholder }}`)
 - Conditionals: `{{#if condition}}...{{/if}}` and `{{#unless condition}}...{{/unless}}`
 - Loops: `{{#each array}}...{{empty}}...{{/each}}` with `@index` and `@order` support
 - Nested property access (e.g., `{{ user.name.first }}`)
-- Render from file or raw string templates
+- Render HTML from file or from raw string templates
+
+---
 
 ## About This Project
 
-TemplateSMD is something I created to make it easier and faster to build web applications using **Express** and **HTMX**.
+TemplateSMD was created to make it easier and faster to build web applications using **Express** and **HTMX**.
 
-Instead of relying on a full templating engine like EJS or Handlebars, I wanted a simple and flexible way to render partial HTML snippets directly from HTML files, especially for dynamic content updates with HTMX requests.
+Instead of relying on a full templating engine like EJS or Handlebars, I wanted a lightweight and flexible way to render partial HTML snippets directly from `.html` files, especially for dynamic content updates with HTMX requests.
 
+---
 
 ## Table of Contents
 
 - [Installation](#installation)
 - [Import Example](#import-example)
 - [Public Methods](#public-methods)
-- [Loop Example](#loop-example)
+- [Loop Examples](#loop-examples)
 - [Conditionals Example](#conditionals-example)
 - [License](#license)
 
+---
+
 ## Installation
 
-You can install manually or use it directly inside your project:
+You can install manually or use it inside your project:
 
 ```bash
 npm install templatesmd
 ```
 
-*(or simply copy `TemplateSMD.js` into your project if using manually)*
+*(Or manually copy `TemplateSMD.js` into your project if preferred.)*
+
+---
 
 ## Import Example
 
 ```javascript
 const path = require('path');
-const TemplateSMD = require('templateSMD');
+const TemplateSMD = require('templatesmd');
+
 const engine = new TemplateSMD({
   baseFolder: path.join(__dirname, 'templates')
 });
 ```
 
+---
 
 ## Public Methods
 
+---
+
 ### setBaseTemplateFolder(folderPath)
-Set or update the base folder for template files.
+
+Set or update the base folder for loading template files.
 
 ```javascript
 engine.setBaseTemplateFolder(path.join(__dirname, 'templates'));
 ```
 
-### renderTemplateString(html, variables)
-Render a raw HTML string using variable interpolation.
+---
+
+### renderTemplateString(htmlString, bindings)
+
+Render an HTML string with placeholder replacements.
 
 ```javascript
-const html = engine.renderTemplateString('<h1>{{ user.name }}</h1>', { user: { name: 'Octavio' } });
+const html = engine.renderTemplateString('<h1>{{ user.name }}</h1>', {
+  user: { name: 'Octavio' }
+});
 ```
 
-### renderTemplateFile(filePath, variables)
-Render a file-based HTML template.
+---
+
+### renderTemplateFile(filePath, bindings)
+
+Render an HTML file by injecting data into placeholders.
 
 ```javascript
-const html = await engine.renderTemplateFile('users/profile.html', { user: { name: 'Octavio' } });
+const html = await engine.renderTemplateFile('users/profile.html', {
+  user: { name: 'Octavio' }
+});
 ```
 
-### render(templateOrFile, variables)
-Render either a file (if `.html` extension) or a raw string automatically.
+---
+
+### render(templateOrFile, bindings)
+
+Render either an HTML file (if `.html` extension) or a raw HTML string automatically.
 
 ```javascript
 // From file
-const htmlFromFile = await engine.render('users/profile.html', { user: { name: 'Octavio' } });
+const htmlFromFile = await engine.render('users/profile.html', {
+  user: { name: 'Octavio' }
+});
 
 // From raw string
-const htmlFromString = await engine.render('<h1>{{ user.name }}</h1>', { user: { name: 'Octavio' } });
+const htmlFromString = await engine.render('<h1>{{ user.name }}</h1>', {
+  user: { name: 'Octavio' }
+});
 ```
 
+---
+
 ### renderMultiple(sections)
-Render and combine multiple templates (file or string) in order.
+
+Render and combine multiple templates (either file or string) in order.
 
 ```javascript
 const html = await engine.renderMultiple([
-  { file: 'partials/header.html', variables: { title: 'My Site' } },
-  { template: '<main><p>Welcome {{ user.name }}</p></main>', variables: { user: { name: 'Octavio' } } },
+  { file: 'partials/header.html', bindings: { title: 'My Site' } },
+  { template: '<main><p>Welcome {{ user.name }}</p></main>', bindings: { user: { name: 'Octavio' } } },
   { file: 'partials/footer.html' }
 ]);
 ```
 
+---
 
 ## Loop Examples
 
-### {{#each primitiveArray}} {{/each}}
+---
+
+### `{{#each primitiveArray}} {{/each}}`
 
 ```html
 <ul>
@@ -118,7 +155,9 @@ const html = await engine.renderMultiple([
 </ul>
 ```
 
-### {{#each objectArray}} {{/each}}
+---
+
+### `{{#each objectArray}} {{/each}}`
 
 ```html
 <ul>
@@ -130,16 +169,20 @@ const html = await engine.renderMultiple([
 </ul>
 ```
 
+---
 
 ### Difference between `@order` and `@index`
 
-- `@index` represents the **zero-based index** of the current item in the loop (First item = 0, second = 1, etc.)
-- `@order` represents the **human-readable position**, starting from 1 (First item = 1, second = 2, etc.)
+- `@index` represents the **zero-based index** of the current item (starting from 0).
+- `@order` represents the **human-readable position**, starting from 1.
 
+---
 
 ## Conditionals Example
 
-### {{#if primitiveBoolean}} {{/if}}
+---
+
+### `{{#if primitiveBoolean}} {{/if}}`
 
 ```html
 {{#if isActive}}
@@ -147,7 +190,9 @@ const html = await engine.renderMultiple([
 {{/if}}
 ```
 
-### {{#unless primitiveBoolean}} {{/unless}}
+---
+
+### `{{#unless primitiveBoolean}} {{/unless}}`
 
 ```html
 {{#unless isActive}}
@@ -155,8 +200,9 @@ const html = await engine.renderMultiple([
 {{/unless}}
 ```
 
+---
 
-### {{#if object.property}} {{/if}}
+### `{{#if object.property}} {{/if}}`
 
 ```html
 {{#if user.isActive}}
@@ -164,7 +210,9 @@ const html = await engine.renderMultiple([
 {{/if}}
 ```
 
-### {{#unless object.property}} {{/unless}}
+---
+
+### `{{#unless object.property}} {{/unless}}`
 
 ```html
 {{#unless user.isActive}}

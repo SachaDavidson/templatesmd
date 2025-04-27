@@ -7,121 +7,38 @@ const path = require('path');
  * A lightweight Node.js template engine for simple dynamic HTML rendering.
  * ---
  * Features:
- * - Variable interpolation {{ variable }}
+ * - Placeholder binding: {{ placeholder }}
  * - Conditionals: {{#if condition}}...{{/if}} and {{#unless condition}}...{{/unless}}
  * - Loops: {{#each array}}...{{empty}}...{{/each}}, with `@index` and `@order` support
  * - Nested property access (e.g., {{ user.name.first }})
- * - Render from file or raw string
+ * - Render HTML from file or raw string templates
  * ---
-## Import Example
-* 
-* ```javascript
-* const path = require('path');
-* const TemplateSMD = require('templateSMD');
-* const engine = new TemplateSMD({
-*   baseFolder: path.join(__dirname, 'templates')
-* });
-* ```
-* 
-* 
-* ## Public Methods
-* 
-* ### setBaseTemplateFolder(folderPath)
-* Set or update the base folder for template files.
-* 
-* ```javascript
-* engine.setBaseTemplateFolder(path.join(__dirname, 'templates'));
-* ```
- * ---
- * ### `renderTemplateString(html, variables)`
- * Render a raw HTML string using variable interpolation.
- * ```javascript
- * const html = engine.renderTemplateString('<h1>{{ user.name }}</h1>', { user: { name: 'Octavio' } });
- * ```
- * ---
- * ### `renderTemplateFile(filePath, variables)`
- * Render a file-based HTML template.
- * ```javascript
- * const html = await engine.renderTemplateFile('users/profile.html', { user: { name: 'Octavio' } });
- * ```
- * ---
- * ### `render(templateOrFile, variables)`
- * Render either a file (if `.html` extension) or raw string automatically.
- * ```javascript
- * // From file
- * const htmlFromFile = await engine.render('users/profile.html', { user: { name: 'Octavio' } });
- *
- * // From raw string
- * const htmlFromString = await engine.render('<h1>{{ user.name }}</h1>', { user: { name: 'Octavio' } });
- * ```
- * ---
- * ### `renderMultiple(sections)`
- * Render and combine multiple templates (file or string) in order.
- * ```javascript
- * const html = await engine.renderMultiple([
- *   { file: 'partials/header.html', variables: { title: 'My Site' } },
- *   { template: '<main><p>Welcome {{ user.name }}</p></main>', variables: { user: { name: 'Octavio' } } },
- *   { file: 'partials/footer.html' }
- * ]);
- * ```
- * ---
- * ## Loop Example:
+ * ## Import Example
  * 
- * ### {{#each primitiveArray}} {{/each}}
- * ```html
- * <ul>
- * {{#each items}}
- *   <li>{{ this }}</li>
- * {{empty}}
- *   <li>No items found.</li>
- * {{/each}}
- * </ul>
- * ```
- * ---
- * ### {{#each objectArray}} {{/each}}
- * ```html
- * <ul>
- * {{#each users}}
- *   <li>{{ name }} - {{ email }}</li>
- * {{empty}}
- *   <li>No users found.</li>
- * {{/each}}
- * </ul>
- * ```
- * ---
- * ### Difference between `@order` and `@index`
- * - `@index` represents the **zero-based index** of the current item in the loop. (First item = 0, second = 1, etc.)
- * - `@order` represents the **human-readable position**, starting from 1. (First item = 1, second = 2, etc.) 
- * ---
- * ## Conditionals Example:
+ * [backticks]javascript
+ * const path = require('path');
+ * const TemplateSMD = require('templatesmd');
+ * const engine = new TemplateSMD({
+ *   baseFolder: path.join(__dirname, 'templates')
+ * });
+ * [backticks]
  * 
- * ### {{#if primitiveBoolean}} {{/if}}
- * ```html
- * {{#if isActive}}
- *   <p>Account is active.</p>
- * {{/if}}
- * ```
- * ---
- * ### {{#unless primitiveBoolean}} {{/unless}}
- * ```html
- * {{#unless isActive}}
- *   <p>Account is inactive.</p>
- * {{/unless}}
- * ```
- * ---
- * ### {{#if object.property}} {{/if}}
- * ```html
- * {{#if user.isActive}}
- *   <p>Welcome back, {{ user.name }}!</p>
- * {{/if}}
- * ```
- * ---
- * ### {{#unless object.property}} {{/unless}}
- * ```html
- * {{#unless user.isActive}}
- *   <p>Hello, guest! Please activate your account.</p>
- * {{/unless}}
- * ```
+ * ## Public Methods
+ * 
+ * ### setBaseTemplateFolder(folderPath)
+ * Set or update the base folder for template file lookup.
+ * 
+ * ### renderTemplateString(html, bindings)
+ * Render an HTML string with placeholders replaced using bindings.
+ * 
+ * ### renderTemplateFile(filePath, bindings)
+ * Render an HTML file, replacing placeholders with bindings.
+ * 
+ * ### render(templateOrFile, bindings)
+ * Render an HTML file (if `.html` extension) or an inline string template automatically.
+ * 
+ * ### renderMultiple(sections)
+ * Render and concatenate multiple templates (files and/or strings).
  */
 class TemplateSMD {
 
@@ -129,16 +46,16 @@ class TemplateSMD {
    * Create a new TemplateSMD instance.
    * 
    * @param {Object} options
-   * @param {string} [options.baseFolder] - Optional base folder for file templates.
+   * @param {string} [options.baseFolder] - Optional base folder for template files.
    */
   constructor(options = {}) {
     this.baseTemplateFolder = options.baseFolder || '';
   }
 
   /**
-   * Set or update the base folder for resolving file paths.
+   * Set or update the base folder for template resolution.
    *
-   * @param {string} folderPath - Folder path where templates are located.
+   * @param {string} folderPath - Folder path where your template files are located.
    * 
    * @example
    * engine.setBaseTemplateFolder('templates');
@@ -152,11 +69,11 @@ class TemplateSMD {
 
   /**
    * @private
-   * Safely retrieve nested object values based on dot notation paths.
+   * Safely retrieve a nested value from an object given a dot-notated path.
    * 
-   * @param {Object} obj - Object to access.
-   * @param {string} path - Dot-separated path string.
-   * @returns {any} - Retrieved value or undefined.
+   * @param {Object} obj - Object to traverse.
+   * @param {string} path - Dot-separated path string (e.g., "user.name.first").
+   * @returns {any} - Retrieved value or undefined if not found.
    */
   #getNestedValue(obj, path) {
     return path.split('.').reduce((acc, part) => acc && acc[part], obj);
@@ -164,21 +81,21 @@ class TemplateSMD {
 
   /**
    * @private
-   * Process conditional blocks (#if and #unless) inside a template string.
+   * Process conditional blocks (e.g., #if, #unless) inside template content.
    * 
-   * @param {string} html - Template content.
-   * @param {Object} variables - Variables for interpolation.
-   * @returns {string} - Processed HTML string.
+   * @param {string} html - Template content string.
+   * @param {Object} bindings - Bindings to apply.
+   * @returns {string} - Template after conditionals are evaluated.
    */
-  #processConditionals(html, variables) {
+  #processConditionals(html, bindings) {
     try {
       html = html.replace(/{{#if\s+([\w.]+)\s*}}([\s\S]*?){{\/if}}/g, (match, key, content) => {
-        const value = this.#getNestedValue(variables, key);
+        const value = this.#getNestedValue(bindings, key);
         return value ? content : '';
       });
 
       html = html.replace(/{{#unless\s+([\w.]+)\s*}}([\s\S]*?){{\/unless}}/g, (match, key, content) => {
-        const value = this.#getNestedValue(variables, key);
+        const value = this.#getNestedValue(bindings, key);
         return !value ? content : '';
       });
 
@@ -191,16 +108,16 @@ class TemplateSMD {
 
   /**
    * @private
-   * Process looping blocks (#each and {{ empty }}) inside a template string.
+   * Process looping blocks (#each and {{empty}}) inside template content.
    * 
-   * @param {string} html - Template content.
-   * @param {Object} variables - Variables for interpolation.
-   * @returns {string} - Processed HTML string.
+   * @param {string} html - Template content string.
+   * @param {Object} bindings - Bindings to apply.
+   * @returns {string} - Template after loops are processed.
    */
-  #processLoops(html, variables) {
+  #processLoops(html, bindings) {
     try {
       return html.replace(/{{#each\s+([\w.]+)\s*}}([\s\S]*?){{\/each}}/g, (match, key, content) => {
-        const list = this.#getNestedValue(variables, key);
+        const list = this.#getNestedValue(bindings, key);
         const parts = content.split(/{{\s*empty\s*}}/);
 
         if (Array.isArray(list) && list.length > 0) {
@@ -235,16 +152,16 @@ class TemplateSMD {
   }
 
   /**
-   * Render a raw HTML template string using variables.
+   * Render a raw HTML template string using provided bindings.
    * 
-   * @param {string} html - Raw HTML template string.
-   * @param {Object} [variables={}] - Variables for interpolation.
-   * @returns {string} - Rendered HTML string.
+   * @param {string} html - HTML template string.
+   * @param {Object} [bindings={}] - Bindings to apply to placeholders.
+   * @returns {string} - Rendered HTML.
    * 
    * @example
    * const html = engine.renderTemplateString('<h1>{{ user.name }}</h1>', { user: { name: 'Octavio' } });
    */
-  renderTemplateString(html, variables = {}) {
+  renderTemplateString(html, bindings = {}) {
     if (typeof html !== 'string') {
       console.error('Template must be a string.');
       return '';
@@ -252,14 +169,14 @@ class TemplateSMD {
 
     let rendered = html;
 
-    rendered = this.#processConditionals(rendered, variables);
+    rendered = this.#processConditionals(rendered, bindings);
 
     while (/{{#each\s+[\w.]+\s*}}/.test(rendered)) {
-      rendered = this.#processLoops(rendered, variables);
+      rendered = this.#processLoops(rendered, bindings);
     }
 
     rendered = rendered.replace(/{{\s*([\w.]+)(\s*\|\|\s*["'](.*?)["'])?\s*}}/g, (match, key, _, defaultValue) => {
-      const value = this.#getNestedValue(variables, key);
+      const value = this.#getNestedValue(bindings, key);
       if (value !== undefined) {
         return value;
       } else if (defaultValue !== undefined) {
@@ -275,14 +192,14 @@ class TemplateSMD {
   /**
    * Render an HTML template from a file path.
    * 
-   * @param {string} filePath - Relative or absolute path to template file.
-   * @param {Object} [variables={}] - Variables for interpolation.
+   * @param {string} filePath - Path to the template file.
+   * @param {Object} [bindings={}] - Bindings to apply to placeholders.
    * @returns {Promise<string>} - Promise resolving to rendered HTML.
    * 
    * @example
    * const html = await engine.renderTemplateFile('users/profile.html', { user: { name: 'Octavio' } });
    */
-  renderTemplateFile(filePath, variables = {}) {
+  renderTemplateFile(filePath, bindings = {}) {
     const adjustedPath = this.baseTemplateFolder ? path.join(this.baseTemplateFolder, filePath) : filePath;
     const absolutePath = path.isAbsolute(adjustedPath) ? adjustedPath : path.join(__dirname, adjustedPath);
 
@@ -292,42 +209,39 @@ class TemplateSMD {
           console.error('Failed to read template:', absolutePath, err);
           reject(new Error('Template file could not be read.'));
         } else {
-          resolve(this.renderTemplateString(html, variables));
+          resolve(this.renderTemplateString(html, bindings));
         }
       });
     });
   }
 
   /**
-   * Render either a file-based template or raw string template based on input.
+   * Render either a file-based template or a raw string template.
    * 
    * @param {string} templateOrFile - Template file path or raw HTML string.
-   * @param {Object} [variables={}] - Variables for interpolation.
+   * @param {Object} [bindings={}] - Bindings to apply.
    * @returns {Promise<string>} - Promise resolving to rendered HTML.
-   * 
-   * @example
-   * const html = await engine.render('users/profile.html', { user: { name: 'Octavio' } });
    */
-  render(templateOrFile, variables = {}) {
+  render(templateOrFile, bindings = {}) {
     const looksLikeFile = typeof templateOrFile === 'string' && templateOrFile.trim().endsWith('.html');
 
     if (looksLikeFile) {
-      return this.renderTemplateFile(templateOrFile, variables);
+      return this.renderTemplateFile(templateOrFile, bindings);
     } else {
-      return Promise.resolve(this.renderTemplateString(templateOrFile, variables));
+      return Promise.resolve(this.renderTemplateString(templateOrFile, bindings));
     }
   }
 
   /**
-   * Render and combine multiple template sections (both files and raw strings).
+   * Render and concatenate multiple templates (files or raw strings) in sequence.
    * 
-   * @param {Array<Object>} sections - Array of sections to render. Each object must have either `file` or `template`.
+   * @param {Array<Object>} sections - Array of section objects (each must have `file` or `template` property).
    * @returns {Promise<string>} - Promise resolving to combined rendered HTML.
    * 
    * @example
    * const html = await engine.renderMultiple([
-   *   { file: 'partials/header.html', variables: { title: 'Welcome' } },
-   *   { template: '<main><h1>{{ user.name }}</h1></main>', variables: { user: { name: 'Octavio' } } },
+   *   { file: 'partials/header.html', bindings: { title: 'Welcome' } },
+   *   { template: '<main><h1>{{ user.name }}</h1></main>', bindings: { user: { name: 'Octavio' } } },
    *   { file: 'partials/footer.html' }
    * ]);
    */
@@ -338,12 +252,12 @@ class TemplateSMD {
 
     const results = await Promise.all(
       sections.map(section => {
-        const { file, template, variables = {} } = section;
+        const { file, template, bindings = {} } = section;
 
         if (file && typeof file === 'string') {
-          return this.renderTemplateFile(file, variables);
+          return this.renderTemplateFile(file, bindings);
         } else if (template && typeof template === 'string') {
-          return Promise.resolve(this.renderTemplateString(template, variables));
+          return Promise.resolve(this.renderTemplateString(template, bindings));
         } else {
           throw new Error('Each section must have either a "file" or "template" property.');
         }
