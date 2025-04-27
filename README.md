@@ -5,9 +5,7 @@ A lightweight Node.js template engine for simple dynamic HTML rendering.
 
 ## Note
 
-TemplateSMD is a personal project that is still under active development.
-
-While it is functional and usable, some features may continue to evolve or change.
+### TemplateSMD is a personal project that is still under active development.
 
 Feedback, suggestions, and constructive criticism are always welcome —  
 feel free to open an issue or share your thoughts if you have ideas to improve it.
