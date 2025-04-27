@@ -15,13 +15,13 @@ const path = require('path');
  * ---
  * ## Import Example
  * 
- * [backticks]javascript
+ * ```javascript
  * const path = require('path');
  * const TemplateSMD = require('templatesmd');
  * const engine = new TemplateSMD({
  *   baseFolder: path.join(__dirname, 'templates')
  * });
- * [backticks]
+ * ```
  * 
  * ## Public Methods
  * 
