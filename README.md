@@ -40,8 +40,11 @@ npm install templatesmd
 ## Import Example
 
 ```javascript
+const path = require('path');
 const TemplateSMD = require('./TemplateSMD');
-const engine = new TemplateSMD({ baseFolder: 'templates' });
+const engine = new TemplateSMD({
+  baseFolder: path.join(__dirname, 'templates')
+});
 ```
 
 
@@ -51,9 +54,7 @@ const engine = new TemplateSMD({ baseFolder: 'templates' });
 Set or update the base folder for template files.
 
 ```javascript
-const engine = new TemplateSMD({
-  baseFolder: path.join(__dirname, 'templates')
-});
+engine.setBaseTemplateFolder(path.join(__dirname, 'templates'));
 ```
 
 ### renderTemplateString(html, variables)
