@@ -3,6 +3,18 @@
 A lightweight Node.js template engine for simple dynamic HTML rendering.
 ---
 
+## Note
+
+TemplateSMD is a personal project that is still under active development.
+
+While it is functional and usable, some features may continue to evolve or change.
+
+Feedback, suggestions, and constructive criticism are always welcome —  
+feel free to open an issue or share your thoughts if you have ideas to improve it.
+
+Thank you for checking it out!
+
+---
 ## Features
 
 - Variable interpolation (`{{ variable }}`)
@@ -41,7 +53,7 @@ npm install templatesmd
 
 ```javascript
 const path = require('path');
-const TemplateSMD = require('./TemplateSMD');
+const TemplateSMD = require('templateSMD');
 const engine = new TemplateSMD({
   baseFolder: path.join(__dirname, 'templates')
 });
