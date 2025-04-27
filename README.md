@@ -51,7 +51,9 @@ const engine = new TemplateSMD({ baseFolder: 'templates' });
 Set or update the base folder for template files.
 
 ```javascript
-engine.setBaseTemplateFolder('templates');
+const engine = new TemplateSMD({
+  baseFolder: path.join(__dirname, 'templates')
+});
 ```
 
 ### renderTemplateString(html, variables)
