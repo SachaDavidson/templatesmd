@@ -1,6 +1,6 @@
 {
   "name": "templatesmd",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A simplified template engine that reads html files and converts it to a string.",
   "main": "templateSMD.js",
   "scripts": {
