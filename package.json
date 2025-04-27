@@ -1,0 +1,19 @@
+{
+  "name": "templatesmd",
+  "version": "1.0.1",
+  "description": "A simplified template engine that reads html files and converts it to a string.",
+  "main": "templateSMD.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SachaDavidson/templatesmd.git"
+  },
+  "author": "Sacha Davison (smddev)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SachaDavidson/templatesmd/issues"
+  },
+  "homepage": "https://github.com/SachaDavidson/templatesmd#readme"
+}

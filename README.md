@@ -41,7 +41,7 @@ npm install templatesmd
 
 ```javascript
 const path = require('path');
-const TemplateSMD = require('./TemplateSMD');
+const TemplateSMD = require('templateSMD');
 const engine = new TemplateSMD({
   baseFolder: path.join(__dirname, 'templates')
 });

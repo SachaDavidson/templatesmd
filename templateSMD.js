@@ -13,19 +13,25 @@ const path = require('path');
  * - Nested property access (e.g., {{ user.name.first }})
  * - Render from file or raw string
  * ---
- * ## Import Example:
- * ```javascript
- * const TemplateSMD = require('./TemplateSMD');
- * const engine = new TemplateSMD({ baseFolder: 'templates' });
- * ```
- * ---
- * ## Public Methods:
- * ---
- * ### `setBaseTemplateFolder(folderPath)`
- * Set or update the base folder for template files.
- * ```javascript
- * engine.setBaseTemplateFolder('templates');
- * ```
+## Import Example
+* 
+* ```javascript
+* const path = require('path');
+* const TemplateSMD = require('templateSMD');
+* const engine = new TemplateSMD({
+*   baseFolder: path.join(__dirname, 'templates')
+* });
+* ```
+* 
+* 
+* ## Public Methods
+* 
+* ### setBaseTemplateFolder(folderPath)
+* Set or update the base folder for template files.
+* 
+* ```javascript
+* engine.setBaseTemplateFolder(path.join(__dirname, 'templates'));
+* ```
  * ---
  * ### `renderTemplateString(html, variables)`
  * Render a raw HTML string using variable interpolation.
