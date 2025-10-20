@@ -17,11 +17,15 @@ Thank you for checking it out!
 
 ## Features
 
-- Placeholder binding (`{{ placeholder }}`)
+- Placeholder binding (`{{ placeholder }}` and `{{{ placeholder }}}`)
 - Conditionals: `{{#if condition}}...{{/if}}` and `{{#unless condition}}...{{/unless}}`
 - Loops: `{{#each array}}...{{empty}}...{{/each}}` with `@index` and `@order` support
 - Nested property access (e.g., `{{ user.name.first }}`)
+- Partial templates: `{{> partialName }}`
 - Render HTML from file or from raw string templates
+- Template caching for improved performance
+- Register partials dynamically from strings or files
+- Clear or invalidate template cache
 
 ---
 
@@ -38,8 +42,12 @@ Instead of relying on a full templating engine like EJS or Handlebars, I wanted 
 - [Installation](#installation)
 - [Import Example](#import-example)
 - [Public Methods](#public-methods)
-- [Loop Examples](#loop-examples)
-- [Conditionals Example](#conditionals-example)
+- [Examples](#examples)
+  - [Placeholders](#placeholders)
+  - [Conditionals](#conditionals)
+  - [Loops](#loops)
+  - [Partials](#partials)
+  - [Cache Management](#cache-management)
 - [License](#license)
 
 ---
@@ -63,7 +71,9 @@ const path = require('path');
 const TemplateSMD = require('templatesmd');
 
 const engine = new TemplateSMD({
-  baseFolder: path.join(__dirname, 'templates')
+  baseFolder: path.join(__dirname, 'templates'),
+  partialsFolder: path.join(__dirname, 'partials'),
+  enableCache: true
 });
 ```
 
@@ -71,14 +81,62 @@ const engine = new TemplateSMD({
 
 ## Public Methods
 
----
-
 ### setBaseTemplateFolder(folderPath)
 
 Set or update the base folder for loading template files.
 
 ```javascript
 engine.setBaseTemplateFolder(path.join(__dirname, 'templates'));
+```
+
+---
+
+### setPartialsFolder(folderPath)
+
+Set or update the folder for loading partial templates.
+
+```javascript
+engine.setPartialsFolder(path.join(__dirname, 'partials'));
+```
+
+---
+
+### registerPartial(name, template)
+
+Register a partial template dynamically from a string.
+
+```javascript
+engine.registerPartial('header', '<header><h1>{{ title }}</h1></header>');
+```
+
+---
+
+### registerPartialFromFile(name, filePath)
+
+Register a partial template dynamically from a file.
+
+```javascript
+await engine.registerPartialFromFile('footer', path.join(__dirname, 'partials/footer.html'));
+```
+
+---
+
+### clearCache()
+
+Clear all cached templates.
+
+```javascript
+engine.clearCache();
+```
+
+---
+
+### invalidateTemplateCache(filePath)
+
+Invalidate the cache for a specific template file.
+
+```javascript
+engine.invalidateTemplateCache('users/profile.html');
 ```
 
 ---
@@ -139,11 +197,71 @@ const html = await engine.renderMultiple([
 
 ---
 
-## Loop Examples
+## Examples
+
+### Placeholders
+
+#### Basic Placeholder
+
+```html
+<h1>{{ user.name }}</h1>
+```
+
+```javascript
+const html = engine.renderTemplateString('<h1>{{ user.name }}</h1>', {
+  user: { name: 'Octavio' }
+});
+```
+
+#### Raw Placeholder
+
+```html
+<p>{{{ user.bio }}}</p>
+```
+
+```javascript
+const html = engine.renderTemplateString('<p>{{{ user.bio }}}</p>', {
+  user: { bio: '<strong>Developer</strong>' }
+});
+```
 
 ---
 
-### `{{#each primitiveArray}} {{/each}}`
+### Conditionals
+
+#### `{{#if}}` Example
+
+```html
+{{#if isActive}}
+  <p>Account is active.</p>
+{{/if}}
+```
+
+```javascript
+const html = engine.renderTemplateString('{{#if isActive}}<p>Account is active.</p>{{/if}}', {
+  isActive: true
+});
+```
+
+#### `{{#unless}}` Example
+
+```html
+{{#unless isActive}}
+  <p>Account is inactive.</p>
+{{/unless}}
+```
+
+```javascript
+const html = engine.renderTemplateString('{{#unless isActive}}<p>Account is inactive.</p>{{/unless}}', {
+  isActive: false
+});
+```
+
+---
+
+### Loops
+
+#### Looping Over Arrays
 
 ```html
 <ul>
@@ -155,67 +273,87 @@ const html = await engine.renderMultiple([
 </ul>
 ```
 
----
+```javascript
+const html = engine.renderTemplateString(`
+<ul>
+{{#each items}}
+  <li>{{ this }}</li>
+{{empty}}
+  <li>No items found.</li>
+{{/each}}
+</ul>`, {
+  items: ['Item 1', 'Item 2']
+});
+```
 
-### `{{#each objectArray}} {{/each}}`
+#### Using `@index` and `@order`
 
 ```html
 <ul>
-{{#each users}}
-  <li>{{ name }} - {{ email }}</li>
-{{empty}}
-  <li>No users found.</li>
+{{#each items}}
+  <li>{{ @order }}: {{ this }}</li>
 {{/each}}
 </ul>
 ```
 
----
-
-### Difference between `@order` and `@index`
-
-- `@index` represents the **zero-based index** of the current item (starting from 0).
-- `@order` represents the **human-readable position**, starting from 1.
-
----
-
-## Conditionals Example
-
----
-
-### `{{#if primitiveBoolean}} {{/if}}`
-
-```html
-{{#if isActive}}
-  <p>Account is active.</p>
-{{/if}}
+```javascript
+const html = engine.renderTemplateString(`
+<ul>
+{{#each items}}
+  <li>{{ @order }}: {{ this }}</li>
+{{/each}}
+</ul>`, {
+  items: ['Item 1', 'Item 2']
+});
 ```
 
 ---
 
-### `{{#unless primitiveBoolean}} {{/unless}}`
+### Partials
+
+#### Using Partials
 
 ```html
-{{#unless isActive}}
-  <p>Account is inactive.</p>
-{{/unless}}
+{{> header }}
+<main>
+  <p>Welcome {{ user.name }}</p>
+</main>
+{{> footer }}
+```
+
+```javascript
+await engine.registerPartial('header', '<header><h1>{{ title }}</h1></header>');
+await engine.registerPartial('footer', '<footer><p>Footer content</p></footer>');
+
+const html = engine.renderTemplateString(`
+{{> header }}
+<main>
+  <p>Welcome {{ user.name }}</p>
+</main>
+{{> footer }}`, {
+  title: 'My Site',
+  user: { name: 'Octavio' }
+});
 ```
 
 ---
 
-### `{{#if object.property}} {{/if}}`
+### Cache Management
 
-```html
-{{#if user.isActive}}
-  <p>Welcome back, {{ user.name }}!</p>
-{{/if}}
+#### Clearing Cache
+
+```javascript
+engine.clearCache();
+```
+
+#### Invalidating Specific Cache
+
+```javascript
+engine.invalidateTemplateCache('users/profile.html');
 ```
 
 ---
 
-### `{{#unless object.property}} {{/unless}}`
+## License
 
-```html
-{{#unless user.isActive}}
-  <p>Hello, guest! Please activate your account.</p>
-{{/unless}}
-```
+This project is licensed under the MIT License.
