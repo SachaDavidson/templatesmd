@@ -6,9 +6,9 @@ A lightweight Node.js template engine for simple dynamic HTML rendering.
 
 ## Note
 
-### TemplateSMD is a personal project that is still under active development.
+### TemplateSMD is just a random personal project and this README.md is AI generated.
 
-Feedback, suggestions, and constructive criticism are always welcome —  
+Feedback, suggestions, and constructive criticism are always welcome — 
 feel free to open an issue or share your thoughts if you have ideas to improve it.
 
 Thank you for checking it out!
@@ -58,11 +58,11 @@ You can install manually or use it inside your project:
 
 ```bash
 npm install templatesmd
-```
+````
 
 *(Or manually copy `TemplateSMD.js` into your project if preferred.)*
 
----
+-----
 
 ## Import Example
 
@@ -77,7 +77,7 @@ const engine = new TemplateSMD({
 });
 ```
 
----
+-----
 
 ## Public Methods
 
@@ -89,7 +89,7 @@ Set or update the base folder for loading template files.
 engine.setBaseTemplateFolder(path.join(__dirname, 'templates'));
 ```
 
----
+-----
 
 ### setPartialsFolder(folderPath)
 
@@ -99,7 +99,7 @@ Set or update the folder for loading partial templates.
 engine.setPartialsFolder(path.join(__dirname, 'partials'));
 ```
 
----
+-----
 
 ### registerPartial(name, template)
 
@@ -109,7 +109,7 @@ Register a partial template dynamically from a string.
 engine.registerPartial('header', '<header><h1>{{ title }}</h1></header>');
 ```
 
----
+-----
 
 ### registerPartialFromFile(name, filePath)
 
@@ -119,7 +119,7 @@ Register a partial template dynamically from a file.
 await engine.registerPartialFromFile('footer', path.join(__dirname, 'partials/footer.html'));
 ```
 
----
+-----
 
 ### clearCache()
 
@@ -129,7 +129,7 @@ Clear all cached templates.
 engine.clearCache();
 ```
 
----
+-----
 
 ### invalidateTemplateCache(filePath)
 
@@ -139,7 +139,7 @@ Invalidate the cache for a specific template file.
 engine.invalidateTemplateCache('users/profile.html');
 ```
 
----
+-----
 
 ### renderTemplateString(htmlString, bindings)
 
@@ -151,7 +151,7 @@ const html = engine.renderTemplateString('<h1>{{ user.name }}</h1>', {
 });
 ```
 
----
+-----
 
 ### renderTemplateFile(filePath, bindings)
 
@@ -163,7 +163,7 @@ const html = await engine.renderTemplateFile('users/profile.html', {
 });
 ```
 
----
+-----
 
 ### render(templateOrFile, bindings)
 
@@ -181,7 +181,7 @@ const htmlFromString = await engine.render('<h1>{{ user.name }}</h1>', {
 });
 ```
 
----
+-----
 
 ### renderMultiple(sections)
 
@@ -195,7 +195,7 @@ const html = await engine.renderMultiple([
 ]);
 ```
 
----
+-----
 
 ## Examples
 
@@ -225,39 +225,41 @@ const html = engine.renderTemplateString('<p>{{{ user.bio }}}</p>', {
 });
 ```
 
----
+-----
 
 ### Conditionals
 
 #### `{{#if}}` Example
 
 ```html
-{{#if isActive}}
-  <p>Account is active.</p>
+{{#if user}}
+  <p>Welcome, {{ user.name }}.</p>
 {{/if}}
 ```
 
 ```javascript
-const html = engine.renderTemplateString('{{#if isActive}}<p>Account is active.</p>{{/if}}', {
-  isActive: true
+const html = engine.renderTemplateString('{{#if user}}<p>Welcome, {{ user.name }}.</p>{{/if}}', {
+  user: { name: 'Octavio' }
 });
+// Output: <p>Welcome, Octavio.</p>
 ```
 
 #### `{{#unless}}` Example
 
 ```html
-{{#unless isActive}}
-  <p>Account is inactive.</p>
+{{#unless user}}
+  <p>Please log in.</p>
 {{/unless}}
 ```
 
 ```javascript
-const html = engine.renderTemplateString('{{#unless isActive}}<p>Account is inactive.</p>{{/unless}}', {
-  isActive: false
+const html = engine.renderTemplateString('{{#unless user}}<p>Please log in.</p>{{/unless}}', {
+  user: null
 });
+// Output: <p>Please log in.</l>
 ```
 
----
+-----
 
 ### Loops
 
@@ -307,7 +309,7 @@ const html = engine.renderTemplateString(`
 });
 ```
 
----
+-----
 
 ### Partials
 
@@ -336,7 +338,7 @@ const html = engine.renderTemplateString(`
 });
 ```
 
----
+-----
 
 ### Cache Management
 
@@ -352,7 +354,7 @@ engine.clearCache();
 engine.invalidateTemplateCache('users/profile.html');
 ```
 
----
+-----
 
 ## License
 

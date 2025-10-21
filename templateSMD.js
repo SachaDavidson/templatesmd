@@ -19,9 +19,9 @@ const fsPromises = fs.promises;
  * Example Usage:
  * ```javascript
  * const templateHandler = new TemplateSMD({
- *   baseFolder: './templates',
- *   partialsFolder: './partials',
- *   enableCache: true
+ * baseFolder: './templates',
+ * partialsFolder: './partials',
+ * enableCache: true
  * });
  *
  * templateHandler.registerPartial('header', '<header>{{ title }}</header>');
@@ -39,8 +39,7 @@ class TemplateSMD {
 
   /**
    * Creates an instance of the template handler with the specified options.
-   * 
-   * @constructor
+   * * @constructor
    * @param {Object} [options={}] - Configuration options for the template handler.
    * @param {string} [options.baseFolder=''] - The base folder path for templates.
    * @param {string} [options.partialsFolder=''] - The folder path for partial templates.
@@ -114,7 +113,7 @@ class TemplateSMD {
   }
 
   /**
-   * Registers a Handlebars partial template from a file.
+   * Registers a partial template from a file.
    *
    * @param {string} name - The name to register the partial under.
    * @param {string} [filePath] - The explicit file path to the partial template. If not provided, the method will use the `partialsFolder` property and the `name` to construct the file path.
@@ -151,7 +150,7 @@ class TemplateSMD {
    * and removes the corresponding entry from the template cache.
    *
    * @param {string} filePath - The relative or absolute path of the file
-   *                            whose cache entry should be invalidated.
+   * whose cache entry should be invalidated.
    */
   invalidateTemplateCache(filePath) {
     const absolutePath = this.#resolveFilePath(filePath);
@@ -259,8 +258,7 @@ class TemplateSMD {
    * Reads the content of a template file from the specified absolute path.
    * If caching is enabled, it attempts to retrieve the content from the cache.
    * If the file has been modified since it was cached, it updates the cache.
-   * 
-   * @param {string} absolutePath - The absolute path to the template file.
+   * * @param {string} absolutePath - The absolute path to the template file.
    * @returns {Promise<string>} - A promise that resolves to the content of the template file.
    * @throws {Error} - Throws an error if the file cannot be read or does not exist.
    * @private
@@ -301,12 +299,14 @@ class TemplateSMD {
     try {
       html = html.replace(/{{#if\s+([\w.]+)\s*}}([\s\S]*?){{\/if}}/g, (match, key, content) => {
         const value = this.#getNestedValue(bindings, key);
-        return value ? content : '';
+        // Recursively render content to process nested placeholders/partials
+        return value ? this.renderTemplateString(content, bindings) : '';
       });
 
       html = html.replace(/{{#unless\s+([\w.]+)\s*}}([\s\S]*?){{\/unless}}/g, (match, key, content) => {
         const value = this.#getNestedValue(bindings, key);
-        return !value ? content : '';
+        // Recursively render content to process nested placeholders/partials
+        return !value ? this.renderTemplateString(content, bindings) : '';
       });
 
       return html;
@@ -321,10 +321,10 @@ class TemplateSMD {
    *
    * @param {Object} item - The current item in the loop.
    * @param {string} key - The key to resolve. Special keys include:
-   *   - 'this': Returns the current item.
-   *   - '@index': Returns the current index of the item in the loop.
-   *   - '@order': Returns the current index incremented by 1.
-   *   - Keys starting with 'this.': Resolves nested values within the current item.
+   * - 'this': Returns the current item.
+   * - '@index': Returns the current index of the item in the loop.
+   * - '@order': Returns the current index incremented by 1.
+   * - Keys starting with 'this.': Resolves nested values within the current item.
    * @param {number} index - The index of the current item in the loop.
    * @param {Object} bindings - Additional bindings to resolve the key if not found in the item.
    * @returns {*} - The resolved value for the given key, or `undefined` if the key cannot be resolved.
@@ -418,7 +418,7 @@ class TemplateSMD {
    * @param {string} html - The HTML string containing partial placeholders.
    * @param {Object} bindings - An object containing data to bind to the partial templates.
    * @returns {string} - The HTML string with partial placeholders replaced by rendered content.
-   * @throws {Error} If a partial template is missing, a warning is logged, and the placeholder is replaced with an empty string.
+   * If a partial template is missing, a warning is logged, and the placeholder is replaced with an empty string.
    */
   #processPartials(html, bindings) {
     return html.replace(/{{>\s*([\w./-]+)\s*}}/g, (match, name) => {
@@ -435,16 +435,13 @@ class TemplateSMD {
 
   /**
    * Replaces placeholders in the provided HTML string with corresponding values from the bindings object.
-   * 
-   * Placeholders are defined in the following formats:
+   *  Placeholders are defined in the following formats:
    * - `{{{ key }}}`: Inserts the raw value of the key from the bindings object.
    * - `{{ key }}`: Inserts the escaped value of the key from the bindings object.
    * - Both formats support a default value using the syntax `key || "defaultValue"`.
-   * 
    * @param {string} html - The HTML string containing placeholders to be replaced.
    * @param {Object} bindings - An object containing key-value pairs used to replace placeholders.
    * @returns {string} - The HTML string with placeholders replaced by corresponding values or default values.
-   * 
    * @private
    */
   #replacePlaceholders(html, bindings) {
@@ -482,8 +479,7 @@ class TemplateSMD {
    * @param {Object} [bindings={}] - An object containing key-value pairs for template bindings.
    * @param {string|number|boolean|Object|Array} [bindings.key] - The values to replace placeholders, conditionals, and loops in the template.
    * @returns {string} The rendered template string with all bindings applied.
-   *
-   * @throws {Error} If the provided `html` is not a string.
+   * If the provided `html` is not a string, an error is logged and an empty string is returned.
    */
   renderTemplateString(html, bindings = {}) {
     if (typeof html !== 'string') {
@@ -495,11 +491,8 @@ class TemplateSMD {
 
     rendered = this.#processPartials(rendered, bindings);
     rendered = this.#processConditionals(rendered, bindings);
-
-    while (/{{#each\s+[\w.]+\s*}}/.test(rendered)) {
-      rendered = this.#processLoops(rendered, bindings);
-    }
-
+    // A single pass is sufficient as processLoops recursively calls renderTemplateString
+    rendered = this.#processLoops(rendered, bindings);
     rendered = this.#replacePlaceholders(rendered, bindings);
 
     return rendered;
